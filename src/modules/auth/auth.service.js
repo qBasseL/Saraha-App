@@ -6,7 +6,8 @@ import {
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
 import { compare } from "bcrypt";
 import { SALT_ROUND } from "../../../config/config.service.js";
-import { generateHash } from "../../common/utils/index.js";
+import { generateHash, compareHash } from "../../common/utils/index.js";
+import { HashApproachEnums } from "../../common/enums/security.enum.js";
 
 export const signup = async (data) => {
   const { username, email, password, phone } = data;
@@ -46,7 +47,11 @@ export const login = async (data) => {
     return notFoundException({ Message: "Couldn't Find This User" });
   }
 
-  const match = await compare(password, checkUser.password);
+  const match = await compareHash({
+    plaintext: password,
+    cipherText: checkUser.password,
+    // approach: HashApproachEnums.argon2
+  });
 
   if (!match) {
     return notFoundException({ Message: "Email or password is wrong" });
