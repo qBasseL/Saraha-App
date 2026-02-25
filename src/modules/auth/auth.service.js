@@ -1,10 +1,12 @@
-import { conflictException, forbiddenException, notFoundException } from "../../common/utils/response/error.response.js"
-import { UserModel } from "../../DB/models/index.js"
+import { conflictException, forbiddenException, notFoundException } from "../../common/utils/index.js"
+import { UserModel, findOne } from "../../DB/index.js"
+
 
 export const signup = async (data) => {
     const {username, email, password, phone, } = data
-    const checkUser = await UserModel.findOne({
-        email, password
+    const checkUser = await findOne({
+        filter: {email},
+        model: UserModel
     })
     if (checkUser) {
         return conflictException({Message:"This Email Is Already Signed Up"})
@@ -21,7 +23,7 @@ export const login = async (data) => {
         email, password
     })
     if (!checkUser) {
-        return notFoundException({Message:"This Email Is Already Signed Up"})
+        return notFoundException({Message:"Couldn't Find This User"})
     }
     return checkUser
 }
