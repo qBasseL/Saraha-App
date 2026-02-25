@@ -1,29 +1,44 @@
-import { conflictException, forbiddenException, notFoundException } from "../../common/utils/index.js"
-import { UserModel, findOne } from "../../DB/index.js"
-
+import {
+  conflictException,
+  forbiddenException,
+  notFoundException,
+} from "../../common/utils/index.js";
+import { UserModel, findOne, insertOne } from "../../DB/index.js";
 
 export const signup = async (data) => {
-    const {username, email, password, phone, } = data
-    const checkUser = await findOne({
-        filter: {email},
-        model: UserModel
-    })
-    if (checkUser) {
-        return conflictException({Message:"This Email Is Already Signed Up"})
+  const { username, email, password, phone } = data;
+  const checkUser = await findOne({
+    filter: { email },
+    model: UserModel,
+    options: {
+        lean: true
     }
-    const user = await UserModel.insertOne({
-        username, email, password, phone
-    })
-    return user
-}
+  });
+  if (checkUser) {
+    return conflictException({ Message: "This Email Is Already Signed Up" });
+  }
+  const user = await insertOne({
+    model: UserModel,
+    data: { username, email, password, phone },
+    options: {
+        lean: true
+    }
+  });
+  return user;
+};
 
 export const login = async (data) => {
-    const {email, password} = data
-    const checkUser = await UserModel.findOne({
-        email, password
-    })
-    if (!checkUser) {
-        return notFoundException({Message:"Couldn't Find This User"})
+  const { email, password } = data;
+  const checkUser = await findOne({
+    model: UserModel,
+    filter: { email, password },
+    // select:'firstName lastName email',
+    options: {
+        lean: true
     }
-    return checkUser
-}
+  });
+  if (!checkUser) {
+    return notFoundException({ Message: "Couldn't Find This User" });
+  }
+  return checkUser;
+};
