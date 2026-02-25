@@ -55,25 +55,33 @@ export const find = async ({
   filter,
   options,
   select,
-  model
+  model,
+  populate= []
 } = {}) => {
-  const doc = model.find(filter || {}).select(select || "");
-  if (options?.populate) {
-    doc.populate(options.populate);
+  const doc = model.find(filter || {}, null, options || {}).select(select || "");
+  if (populate) {
+    if (Array.isArray(populate)) {
+        populate.forEach((pop) => {
+            doc = doc.populate(pop)
+        })
+    } else {
+            doc = doc.populate(populate)
+    }
   }
   if (options?.skip) {
-    doc.skip(options.skip);
+    doc = doc.skip(options.skip);
   }
 
   if (options?.limit) {
-    doc.limit(options.limit);
+    doc = doc.limit(options.limit);
   }
 
   if (options?.lean) {
-    doc.lean(options.lean);
+    doc = doc.lean();
   }
   return await doc.exec();
 }
+
 export const paginate = async ({
   filter = {},
   options = {},
