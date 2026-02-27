@@ -1,6 +1,8 @@
 import {
   conflictException,
   forbiddenException,
+  generateDecryption,
+  generateEncryption,
   notFoundException,
 } from "../../common/utils/index.js";
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
@@ -27,7 +29,7 @@ export const signup = async (data) => {
       username,
       email,
       password: await generateHash({ plaintext: password }),
-      phone,
+      phone: await generateEncryption(phone),
     },
   });
   return user;
@@ -46,7 +48,7 @@ export const login = async (data) => {
   if (!checkUser) {
     return notFoundException({ Message: "Couldn't Find This User" });
   }
-
+  checkUser.phone = await generateDecryption(checkUser.phone)
   const match = await compareHash({
     plaintext: password,
     cipherText: checkUser.password,
@@ -56,6 +58,6 @@ export const login = async (data) => {
   if (!match) {
     return notFoundException({ Message: "Email or password is wrong" });
   }
-
+  
   return checkUser;
 };
