@@ -6,10 +6,8 @@ import {
   notFoundException,
 } from "../../common/utils/index.js";
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
-import { compare } from "bcrypt";
-import { SALT_ROUND } from "../../../config/config.service.js";
 import { generateHash, compareHash } from "../../common/utils/index.js";
-import { HashApproachEnums } from "../../common/enums/security.enum.js";
+
 
 export const signup = async (data) => {
   const { username, email, password, phone } = data;
