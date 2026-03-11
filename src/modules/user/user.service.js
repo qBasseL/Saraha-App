@@ -6,15 +6,14 @@ import {
   notFoundException,
 } from "../../common/utils/index.js";
 
-export const getUser = async (token) => {
+export const getUser = async (user) => {
   // const decodeToken = jwt.decode(token);
-  const user = await decodeToken({ token, tokenType: "access" });
+
   return user;
 };
 
-export const rotateToken = async (token) => {
+export const rotateToken = async (user) => {
   // const decodeToken = jwt.decode(token);
-  const user = await decodeToken({ token, tokenType: "refresh" });
 
   return createLoginCredentials(user);
 };

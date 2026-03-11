@@ -12,7 +12,7 @@ import {
   notFoundException,
 } from "../response/index.js";
 import { findOne, UserModel } from "../../../DB/index.js";
-import { RoleEnum } from "../../enums/index.js";
+import { RoleEnum, TokenTypeEnums } from "../../enums/index.js";
 
 export const generateToken = ({
   payload = {},
@@ -54,7 +54,7 @@ export const detectSignatureLevels = (level) => {
   return signature;
 };
 
-export const decodeToken = async ({ token, tokenType = "access" } = {}) => {
+export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } = {}) => {
   const decoded = jwt.decode(token);
 
   if (!decoded || !decoded.role) {
