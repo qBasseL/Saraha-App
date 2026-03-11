@@ -1,41 +1,94 @@
 import jwt from "jsonwebtoken";
 import {
+  ACCESS_TOKEN_EXPIRES_IN,
+  REFRESH_TOKEN_EXPIRES_IN,
+  SYSTEM_TOKEN_ACCESS_SECRET_KEY,
+  SYSTEM_TOKEN_REFRESH_SECRET_KEY,
   TOKEN_ACCESS_SECRET_KEY,
   TOKEN_REFRESH_SECRET_KEY,
 } from "../../../../config/config.service.js";
-import { notFoundException } from "../response/error.response.js";
+import {
+  errorException,
+  notFoundException,
+} from "../response/index.js";
 import { findOne, UserModel } from "../../../DB/index.js";
+import { RoleEnum } from "../../enums/index.js";
 
 export const generateToken = ({
   payload = {},
-  secretKey = TOKEN_ACCESS_SECRET_KEY,
+  secretKey,
   options = {},
 } = {}) => {
+  if (!secretKey) {
+    return errorException({
+      Message: "Token Secret Key Is Missing",
+      status: 400,
+    });
+  }
   return jwt.sign(payload, secretKey, options);
 };
 
-export const verifyToken = ({ token, secretKey } = {}) => {
-  return jwt.verify(token, secretKey);
+export const verifyToken = ({ token, secretKey, issuer, audience } = {}) => {
+  return jwt.verify(token, secretKey, { issuer, audience });
+};
+
+export const detectSignatureLevels = (level) => {
+  let signature = { accessSignature: undefined, refreshSignature: undefined };
+
+  switch (level) {
+    case RoleEnum.Admin:
+      signature = {
+        accessSignature: SYSTEM_TOKEN_ACCESS_SECRET_KEY,
+        refreshSignature: SYSTEM_TOKEN_REFRESH_SECRET_KEY,
+      };
+      break;
+
+    default:
+      signature = {
+        accessSignature: TOKEN_ACCESS_SECRET_KEY,
+        refreshSignature: TOKEN_REFRESH_SECRET_KEY,
+      };
+      break;
+  }
+
+  return signature;
 };
 
 export const decodeToken = async ({ token, tokenType = "access" } = {}) => {
-  const secretKey =
-    tokenType === "access" ? TOKEN_ACCESS_SECRET_KEY : TOKEN_REFRESH_SECRET_KEY;
+  const decoded = jwt.decode(token);
+
+  if (!decoded || !decoded.role) {
+    return notFoundException({ Message: "Invalid Token Payload" });
+  }
+  const { accessSignature, refreshSignature } = detectSignatureLevels(
+    decoded.role,
+  );
+
+  const secretKey = tokenType === "access" ? accessSignature : refreshSignature;
   let verifiedData;
 
   try {
     verifiedData = verifyToken({
       token: token,
       secretKey: secretKey,
+      issuer: "bassel-api",
+      audience: decoded.role,
     });
   } catch (error) {
     return notFoundException({ Message: "Wrong Token" });
+  }
+
+  if (verifiedData.type !== tokenType) {
+    return notFoundException({ Message: "Invalid Token Type" });
   }
 
   const user = await findOne({
     model: UserModel,
     filter: {
       _id: verifiedData.sub,
+    },
+    options: {
+      lean: true,
     },
   });
 
@@ -47,23 +100,27 @@ export const decodeToken = async ({ token, tokenType = "access" } = {}) => {
 };
 
 export const createLoginCredentials = (user) => {
+  const { accessSignature, refreshSignature } = detectSignatureLevels(
+    user.role,
+  );
+
   const access_token = generateToken({
-    payload: { sub: user._id },
-    secretKey: TOKEN_ACCESS_SECRET_KEY,
+    payload: { sub: user._id, role: user.role, type: "access" },
+    secretKey: accessSignature,
     options: {
-      expiresIn: "15m",
+      expiresIn: ACCESS_TOKEN_EXPIRES_IN,
       issuer: "bassel-api",
-      audience: ["Web", "Mobile"],
+      audience: [user.role],
     },
   });
 
   const refresh_token = generateToken({
-    payload: { sub: user._id },
-    secretKey: TOKEN_REFRESH_SECRET_KEY,
+    payload: { sub: user._id, role: user.role, type: "refresh" },
+    secretKey: refreshSignature,
     options: {
-      expiresIn: "1y",
+      expiresIn: REFRESH_TOKEN_EXPIRES_IN,
       issuer: "bassel-api",
-      audience: ["Web", "Mobile"],
+      audience: [user.role],
     },
   });
 

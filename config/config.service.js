@@ -17,4 +17,7 @@ export const IV_LENGTH = parseInt(process.env.IV_LENGTH)
 export const ENC_SECRET_KEY = Buffer.from(process.env.ENC_SECRET_KEY)
 export const TOKEN_ACCESS_SECRET_KEY = process.env.TOKEN_ACCESS_SECRET_KEY;
 export const TOKEN_REFRESH_SECRET_KEY = process.env.TOKEN_REFRESH_SECRET_KEY;
-
+export const SYSTEM_TOKEN_ACCESS_SECRET_KEY = process.env.SYSTEM_TOKEN_ACCESS_SECRET_KEY;
+export const SYSTEM_TOKEN_REFRESH_SECRET_KEY = process.env.SYSTEM_TOKEN_REFRESH_SECRET_KEY;
+export const ACCESS_TOKEN_EXPIRES_IN = parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN);
+export const REFRESH_TOKEN_EXPIRES_IN = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN);
