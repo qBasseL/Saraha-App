@@ -1,5 +1,6 @@
 import {
   conflictException,
+  createLoginCredentials,
   forbiddenException,
   generateDecryption,
   generateEncryption,
@@ -7,7 +8,11 @@ import {
 } from "../../common/utils/index.js";
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
 import { generateHash, compareHash } from "../../common/utils/index.js";
-
+import jwt from "jsonwebtoken";
+import {
+  TOKEN_ACCESS_SECRET_KEY,
+  TOKEN_REFRESH_SECRET_KEY,
+} from "../../../config/config.service.js";
 
 export const signup = async (data) => {
   const { username, email, password, phone } = data;
@@ -46,7 +51,7 @@ export const login = async (data) => {
   if (!checkUser) {
     return notFoundException({ Message: "Couldn't Find This User" });
   }
-  checkUser.phone = await generateDecryption(checkUser.phone)
+  checkUser.phone = await generateDecryption(checkUser.phone);
   const match = await compareHash({
     plaintext: password,
     cipherText: checkUser.password,
@@ -56,6 +61,6 @@ export const login = async (data) => {
   if (!match) {
     return notFoundException({ Message: "Email or password is wrong" });
   }
-  
-  return checkUser;
+
+  return createLoginCredentials(checkUser)
 };
