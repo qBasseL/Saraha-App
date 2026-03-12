@@ -57,7 +57,7 @@ export const detectSignatureLevels = (level) => {
 export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } = {}) => {
   const decoded = jwt.decode(token);
 
-  if (!decoded || !decoded.role) {
+  if (!decoded) {
     return notFoundException({ Message: "Invalid Token Payload" });
   }
   const { accessSignature, refreshSignature } = detectSignatureLevels(

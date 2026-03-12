@@ -30,7 +30,9 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "You should enter a password to signup"],
+      required: function () {
+        return this.provider == ProviderEnum.System
+      },
       minLength: [8, `Password can't be less than 8 characters`],
     },
     gender: {

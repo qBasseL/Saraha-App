@@ -3,10 +3,16 @@ import { globalErrorHandler } from "./common/utils/response/error.response.js";
 import { PORT } from "../config/config.service.js";
 import { authenticateDB } from "./DB/db.connection.js";
 import { authRouter, userRouter } from "./modules/index.js";
+import helmet from 'helmet'
+import cors from 'cors'
 
 const bootstrap = async () => {
   const app = express();
-  app.use(express.json());
+  app.use(express.json(), helmet(), cors(
+    {
+      origin: 'http://localhost:4200'
+    }
+  ));
   await authenticateDB();
 
   app.use('/auth', authRouter)
