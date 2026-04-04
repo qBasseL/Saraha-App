@@ -6,7 +6,7 @@ export const globalErrorHandler = (error, req, res, next) => {
     status: status,
     Message: "Something Went Wrong",
     Error: error.message || 'Internal Server Error',
-    extra: error.cause?.extra || null,
+    extra: error?.cause?.extra || undefined,
     stack: NODE_ENV === 'development' ? error.stack : undefined
   });
 };

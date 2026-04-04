@@ -4,7 +4,7 @@ import { UserModel } from "./index.js"
 
 export const authenticateDB = async () => {
   try {
-    await mongoose.connect(DB_URI, { serverSelectionTimeoutMS: 2000 });
+    await mongoose.connect(DB_URI, { serverSelectionTimeoutMS: 500 });
     await UserModel.syncIndexes()
     console.log(`Connected To Database`);
   } catch (error) {

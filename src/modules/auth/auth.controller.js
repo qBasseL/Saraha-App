@@ -7,10 +7,46 @@ import {
 } from "./auth.service.js";
 import { successResponse } from "../../common/utils/response/success.response.js";
 const router = Router();
+import joi from "joi";
+import { badRequestException } from "../../common/utils/index.js";
+
+const signupSchema = joi
+  .object()
+  .keys({
+    username: joi.string().min(3).max(50).required().messages({
+      "any.required": "username is a required field",
+      "string.empty": "username cant be empty",
+    }),
+    email: joi
+      .string()
+      .email({
+        minDomainSegments: 2,
+        maxDomainSegments: 3,
+        tlds: { allow: ["com", "net"] },
+      })
+      .required()
+      .messages({
+        "any.required": "email is a required field",
+        "string.empty": "email cant be empty",
+      }),
+    password: joi.string().required(),
+    phone: joi.string().required(),
+  })
+  .required();
 
 router.post("/signup", async (req, res, next) => {
-  const result = await signup(req.body);
-  return successResponse({ res, status: 201, data: result });
+  const validationResult = signupSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
+  if (validationResult.error) {
+    return badRequestException({
+      Message: "Validation Error",
+      extra: validationResult.error,
+    });
+  }
+  // const result = await signup(req.body);
+  return successResponse({ res, status: 201, data: validationResult });
 });
 
 router.post("/login", async (req, res, next) => {
