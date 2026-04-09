@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
     provider: {
       type: Number,
       enum: Object.values(ProviderEnum),
-      default: GenderEnum.System,
+      default: ProviderEnum.System,
     },
     role: {
       type: Number,
