@@ -1,4 +1,5 @@
 import joi from "joi";
+import { Types } from "mongoose";
 
 export const generalValidationField = {
   email: joi
@@ -34,9 +35,21 @@ export const generalValidationField = {
   }),
   phone: joi.string().pattern(new RegExp(/^(00201|01|\+201)(0|1|2|5)\d{8}$/)),
 
-  confirmPassword: (path='password') =>
-    joi.string().valid(joi.ref(path)).required().messages({"any.only": "Passwords do not match","any.required": "confirmPassword is required",}).strip(),
-   
+  confirmPassword: (path = "password") =>
+    joi
+      .string()
+      .valid(joi.ref(path))
+      .required()
+      .messages({
+        "any.only": "Passwords do not match",
+        "any.required": "confirmPassword is required",
+      })
+      .strip(),
 
-
+  id: joi.string().custom((value, helper) => {
+    if (!Types.ObjectId.isValid(value)) {
+      return helper.message("Invalid MongoDB ObjectId");
+    }
+    return value;
+  }),
 };

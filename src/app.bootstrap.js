@@ -5,6 +5,7 @@ import { authenticateDB } from "./DB/db.connection.js";
 import { authRouter, userRouter } from "./modules/index.js";
 import helmet from 'helmet'
 import cors from 'cors'
+import {resolve} from 'node:path'
 
 const bootstrap = async () => {
   const app = express();
@@ -13,6 +14,9 @@ const bootstrap = async () => {
       origin: 'http://localhost:4200'
     }
   ));
+  app.use('/uploads', express.static(resolve(`../uploads`)))
+
+
   await authenticateDB();
 
   app.use('/auth', authRouter)

@@ -87,9 +87,6 @@ export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } =
     filter: {
       _id: verifiedData.sub,
     },
-    options: {
-      lean: true,
-    },
   });
 
   if (!user) {

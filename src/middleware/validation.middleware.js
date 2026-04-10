@@ -17,7 +17,7 @@ export const validation = (schema) => {
       }
     }
     if (errors.length) {
-      throw badRequestException({ Message: "Validation Error", extra: errors });
+      return badRequestException({ Message: "Validation Error", extra: errors });
     }
     next();
   };
