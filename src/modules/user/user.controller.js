@@ -9,13 +9,14 @@ import { TokenTypeEnums } from "../../common/enums/security.enum.js";
 import { RoleEnum } from "../../common/enums/user.enum.js";
 import { validation } from "../../middleware/validation.middleware.js";
 import * as validators from "./user.validation.js";
+import { fileFieledValidation } from "../../common/utils/index.js";
 
 const router = Router();
 
 router.patch(
   "/profile-image",
   authenticate(),
-  localFileUpload("profile picture").single("attachment"),
+  localFileUpload("profile picture" , fileFieledValidation.Image).single("attachment"),
   async (req, res, next) => {
     const result = await profileImage(req.user, req.file)
     return successResponse({ res, status: 200, data: { result } });
