@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { localFileUpload, successResponse } from "../../common/utils/index.js";
-import { getUser, profileImage, rotateToken, shareProfile } from "./user.service.js";
+import { getUser, profileCoverImage, profileImage, rotateToken, shareProfile } from "./user.service.js";
 import {
   authenticate,
   authorization,
@@ -19,6 +19,16 @@ router.patch(
   localFileUpload("profile picture" , fileFieledValidation.Image).single("attachment"),
   async (req, res, next) => {
     const result = await profileImage(req.user, req.file)
+    return successResponse({ res, status: 200, data: { result } });
+  },
+);
+
+router.patch(
+  "/profile-cover-image",
+  authenticate(),
+  localFileUpload("profile cover picture" , fileFieledValidation.Image).array("attachments", 3),
+  async (req, res, next) => {
+    const result = await profileCoverImage(req.user, req.files)
     return successResponse({ res, status: 200, data: { result } });
   },
 );

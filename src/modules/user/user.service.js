@@ -22,6 +22,12 @@ export const profileImage = async (user, file) => {
   return user
 };
 
+export const profileCoverImage = async (user, files) => {
+  user.coverProfilePictures = files.map(file => file.finalPath)
+  // console.log(user);
+  await user.save()
+  return user
+}
 export const rotateToken = async (user) => {
   // const decodeToken = jwt.decode(token);
 
