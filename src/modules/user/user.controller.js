@@ -17,6 +17,7 @@ router.patch(
   "/profile-image",
   authenticate(),
   localFileUpload("profile picture" , fileFieledValidation.Image).single("attachment"),
+  validation(validators.fileValidation),
   async (req, res, next) => {
     const result = await profileImage(req.user, req.file)
     return successResponse({ res, status: 200, data: { result } });
@@ -27,6 +28,7 @@ router.patch(
   "/profile-cover-image",
   authenticate(),
   localFileUpload("profile cover picture" , fileFieledValidation.Image).array("attachments", 3),
+  validation(validators.filesValidation),
   async (req, res, next) => {
     const result = await profileCoverImage(req.user, req.files)
     return successResponse({ res, status: 200, data: { result } });
