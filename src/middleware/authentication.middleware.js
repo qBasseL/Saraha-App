@@ -9,7 +9,9 @@ export const authenticate = (tokenType = TokenTypeEnums.Access) => {
     }
     const token = authHeader.split(" ")[1];
     // console.log(token);
-    req.user = await decodeToken({ token, tokenType });
+    const {user, decoded} = await decodeToken({ token, tokenType });
+    req.user = user
+    req.decoded = decoded
     next();
   };
 };

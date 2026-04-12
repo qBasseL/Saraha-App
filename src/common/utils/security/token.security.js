@@ -7,12 +7,11 @@ import {
   TOKEN_ACCESS_SECRET_KEY,
   TOKEN_REFRESH_SECRET_KEY,
 } from "../../../../config/config.service.js";
-import {
-  errorException,
-  notFoundException,
-} from "../response/index.js";
+import { errorException, notFoundException, unauthorizedException } from "../response/index.js";
 import { findOne, UserModel } from "../../../DB/index.js";
 import { RoleEnum, TokenTypeEnums } from "../../enums/index.js";
+import { randomUUID } from "node:crypto";
+import { TokenModel } from "../../../DB/models/token.model.js";
 
 export const generateToken = ({
   payload = {},
@@ -54,7 +53,10 @@ export const detectSignatureLevels = (level) => {
   return signature;
 };
 
-export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } = {}) => {
+export const decodeToken = async ({
+  token,
+  tokenType = TokenTypeEnums.Access,
+} = {}) => {
   const decoded = jwt.decode(token);
 
   if (!decoded) {
@@ -82,6 +84,18 @@ export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } =
     return notFoundException({ Message: "Invalid Token Type" });
   }
 
+  if (
+    decoded.jti &&
+    (await findOne({
+      model: TokenModel,
+      filter: {
+        jti: decoded.jti,
+      },
+    }))
+  ) {
+    return unauthorizedException({ Message: "Invalid Login Session" });
+  }
+
   const user = await findOne({
     model: UserModel,
     filter: {
@@ -93,13 +107,22 @@ export const decodeToken = async ({ token, tokenType = TokenTypeEnums.Access } =
     return notFoundException({ Message: "Couldn't find that user" });
   }
 
-  return user;
+  if (
+    user.changeCredentialTime &&
+    user.changeCredentialTime?.getTime() >= decoded.iat * 1000
+  ) {
+    return unauthorizedException({ Message: "Invalid Login Session" });
+  }
+
+  return { user, decoded };
 };
 
 export const createLoginCredentials = (user) => {
   const { accessSignature, refreshSignature } = detectSignatureLevels(
     user.role,
   );
+
+  const jwtid = randomUUID();
 
   const access_token = generateToken({
     payload: { sub: user._id, role: user.role, type: "access" },
@@ -108,6 +131,7 @@ export const createLoginCredentials = (user) => {
       expiresIn: ACCESS_TOKEN_EXPIRES_IN,
       issuer: "bassel-api",
       audience: [user.role],
+      jwtid,
     },
   });
 
@@ -118,6 +142,7 @@ export const createLoginCredentials = (user) => {
       expiresIn: REFRESH_TOKEN_EXPIRES_IN,
       issuer: "bassel-api",
       audience: [user.role],
+      jwtid,
     },
   });
 

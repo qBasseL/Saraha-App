@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { localFileUpload, successResponse } from "../../common/utils/index.js";
-import { getUser, profileCoverImage, profileImage, rotateToken, shareProfile } from "./user.service.js";
+import { getUser, logout, profileCoverImage, profileImage, rotateToken, shareProfile } from "./user.service.js";
 import {
   authenticate,
   authorization,
@@ -12,6 +12,11 @@ import * as validators from "./user.validation.js";
 import { fileFieledValidation } from "../../common/utils/index.js";
 
 const router = Router();
+
+router.post('/logout', authenticate(), async (req, res, next) => {
+  const status = await logout(req.body, req.user, req.decoded)
+  return successResponse({ res, status});
+})
 
 router.patch(
   "/profile-image",
@@ -59,7 +64,7 @@ router.post(
   authenticate(TokenTypeEnums.Refresh),
   authorization([RoleEnum.Admin, RoleEnum.User]),
   async (req, res, next) => {
-    const result = await rotateToken(req.user);
+    const result = await rotateToken(req.user, req.decoded);
     return successResponse({ res, status: 201, data: result });
   },
 );

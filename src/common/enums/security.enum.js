@@ -7,3 +7,8 @@ export const TokenTypeEnums = {
     Access: 'access',
     Refresh: 'refresh'
 }
+
+export const LogoutEnums = {
+    All: 0,
+    Only: 1
+}
