@@ -18,6 +18,7 @@ const tokenSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: "Token"
   },
 );
 
