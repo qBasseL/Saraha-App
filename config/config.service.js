@@ -23,3 +23,6 @@ export const ACCESS_TOKEN_EXPIRES_IN = parseInt(process.env.ACCESS_TOKEN_EXPIRES
 export const REFRESH_TOKEN_EXPIRES_IN = parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN);
 export const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID;
 export const REDIS_URI = process.env.REDIS_URI
+export const GOOGLE_APP_PASSWORD = process.env.GOOGLE_APP_PASSWORD;
+export const GOOGLE_APP_EMAIL = process.env.GOOGLE_APP_EMAIL
+
