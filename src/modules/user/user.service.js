@@ -4,6 +4,13 @@ import {
 } from "../../../config/config.service.js";
 import { LogoutEnums } from "../../common/enums/security.enum.js";
 import {
+  deletekey,
+  revokeTokenKey,
+  set,
+  keys,
+  baseRevokeTokenKey,
+} from "../../common/services/redis.service.js";
+import {
   conflictException,
   createLoginCredentials,
   decodeToken,
@@ -39,19 +46,16 @@ export const profileCoverImage = async (user, files) => {
   await user.save();
   return user;
 };
-export const rotateToken = async (user, { jti, iat }) => {
+export const rotateToken = async (user, { jti, iat, sub }) => {
   if ((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000 > Date.now() + 30000) {
     return conflictException({
       Message: "Current access token is still valid",
     });
   }
-  await insertOne({
-    model: TokenModel,
-    data: {
-      userId: user._id,
-      jti,
-      expiresIn: new Date((iat + REFRESH_TOKEN_EXPIRES_IN) * 1000),
-    },
+  await set({
+    key: revokeTokenKey({ userId: sub, jti }),
+    value: jti,
+    ttl: iat + REFRESH_TOKEN_EXPIRES_IN,
   });
   return createLoginCredentials(user);
 };
@@ -74,29 +78,25 @@ export const shareProfile = async (data) => {
   return profile;
 };
 
-export const logout = async ({ flag }, user, { jti, iat }) => {
+export const logout = async ({ flag }, user, { jti, iat, sub }) => {
   let status = 200;
 
   switch (flag) {
     case LogoutEnums.All:
       user.changeCredentialTime = new Date();
       await user.save();
-      await deleteMany({
-        model: TokenModel,
-        filter: {
-          userId: user._id,
-        },
+      await deletekey({
+        key: await keys({
+          prefix: baseRevokeTokenKey({ userId: sub }),
+        }),
       });
       break;
 
     default:
-      await insertOne({
-        model: TokenModel,
-        data: {
-          userId: user._id,
-          jti,
-          expiresIn: new Date((iat + REFRESH_TOKEN_EXPIRES_IN) * 1000),
-        },
+      await set({
+        key: revokeTokenKey({ userId: sub, jti }),
+        value: jti,
+        ttl: iat + REFRESH_TOKEN_EXPIRES_IN,
       });
       status = 201;
       break;

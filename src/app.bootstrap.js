@@ -7,7 +7,7 @@ import helmet from 'helmet'
 import cors from 'cors'
 import {resolve} from 'node:path'
 import { connectRedis, redisClient } from "./DB/index.js";
-import { set } from "./common/services/index.js";
+import { get, set } from "./common/services/index.js";
 
 const bootstrap = async () => {
   const app = express();
@@ -22,10 +22,12 @@ const bootstrap = async () => {
   await authenticateDB();
   await connectRedis()
 
-  await set({key:"name", value:"Bassel"})
+  // await set({key:"name", value:"Bassel"})
 
-  // await redisClient.set('name', 'Bassel', {EX: 60})
-  // console.log(await redisClient.get('name'))
+  // // await redisClient.set('name', 'Bassel', {EX: 60})
+  // // console.log(await redisClient.get('name'))
+
+  // console.log(await get({key: 'name'}))
 
   app.use('/auth', authRouter)
   app.use('/user', userRouter)

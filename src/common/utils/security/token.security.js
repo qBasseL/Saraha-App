@@ -7,11 +7,16 @@ import {
   TOKEN_ACCESS_SECRET_KEY,
   TOKEN_REFRESH_SECRET_KEY,
 } from "../../../../config/config.service.js";
-import { errorException, notFoundException, unauthorizedException } from "../response/index.js";
+import {
+  errorException,
+  notFoundException,
+  unauthorizedException,
+} from "../response/index.js";
 import { findOne, UserModel } from "../../../DB/index.js";
 import { RoleEnum, TokenTypeEnums } from "../../enums/index.js";
 import { randomUUID } from "node:crypto";
 import { TokenModel } from "../../../DB/models/token.model.js";
+import { get, revokeTokenKey } from "../../services/redis.service.js";
 
 export const generateToken = ({
   payload = {},
@@ -86,11 +91,8 @@ export const decodeToken = async ({
 
   if (
     decoded.jti &&
-    (await findOne({
-      model: TokenModel,
-      filter: {
-        jti: decoded.jti,
-      },
+    (await get({
+      key: revokeTokenKey({ userId: decoded.sub, jti: decoded.jti }),
     }))
   ) {
     return unauthorizedException({ Message: "Invalid Login Session" });
