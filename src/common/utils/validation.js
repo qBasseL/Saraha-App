@@ -52,4 +52,5 @@ export const generalValidationField = {
     }
     return value;
   }),
+  otp: joi.string().pattern(new RegExp(/^\d{6}$/))
 };

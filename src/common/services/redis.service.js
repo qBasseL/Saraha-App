@@ -8,6 +8,10 @@ export const revokeTokenKey = ({ userId, jti }) => {
   return `${baseRevokeTokenKey({ userId })}::${jti}`;
 };
 
+export const otpTemplateKey = ({ email }) => {
+  return `OTP::User::${email}`;
+};
+
 export const set = async ({ key, value, ttl } = {}) => {
   try {
     let data = typeof value === "string" ? value : JSON.stringify(value);

@@ -17,3 +17,11 @@ export const signup = {
       confirmPassword: generalValidationField.confirmPassword("password"),
     }).required(),
 };
+
+export const confirmEmail = {
+  body: joi.object().keys({
+    email: generalValidationField.email.required(),
+    otp: generalValidationField.otp.required()
+  }).required()
+};
+

@@ -2,10 +2,12 @@ import {
   badRequestException,
   conflictException,
   createLoginCredentials,
+  createNumberOtp,
   forbiddenException,
   generateDecryption,
   generateEncryption,
   notFoundException,
+  sendEmail,
 } from "../../common/utils/index.js";
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
 import { generateHash, compareHash } from "../../common/utils/index.js";
@@ -17,6 +19,12 @@ import {
 } from "../../../config/config.service.js";
 import { OAuth2Client } from "google-auth-library";
 import { ProviderEnum } from "../../common/enums/user.enum.js";
+import { emailTemplate } from "../../common/utils/email/template.email.js";
+import {
+  get,
+  otpTemplateKey,
+  set,
+} from "../../common/services/redis.service.js";
 
 const verifyGoogleAccount = async (idToken) => {
   const client = new OAuth2Client(WEB_CLIENT_ID);
@@ -56,14 +64,58 @@ export const signup = async (data) => {
       phone: await generateEncryption(phone),
     },
   });
+
+  const code = await createNumberOtp();
+  await set({
+    key: otpTemplateKey({ email }),
+    value: await generateHash({ plaintext: `${code}` }),
+    ttl: 300,
+  });
+
+  await sendEmail({
+    to: email,
+    subject: "Confirm Email",
+    html: emailTemplate({ title: "Confirm Email", code }),
+  });
+
   return user;
+};
+
+export const confirmSignup = async (data) => {
+  const { email, otp } = data;
+  const checkUser = await findOne({
+    filter: {
+      email,
+      confirmEmail: { $exists: false },
+      provider: ProviderEnum.System,
+    },
+    model: UserModel,
+  });
+  if (!checkUser) {
+    return notFoundException({ Message: "User is not found to be verfied" });
+  }
+
+  const hashOtp = await get({ key: otpTemplateKey({ email }) });
+
+  if (!hashOtp) {
+    return notFoundException({ Message: "Didn't find your one time password" });
+  }
+
+  if (!(await compareHash({ plaintext: otp, cipherText: hashOtp }))) {
+    return conflictException({ Message: "Invalid OTP" });
+  }
+
+  checkUser.confirmedEmail = new Date();
+  await checkUser.save();
+
+  return;
 };
 
 export const login = async (data) => {
   const { email, password } = data;
   const checkUser = await findOne({
     model: UserModel,
-    filter: { email, provider:ProviderEnum.System },
+    filter: { email, provider: ProviderEnum.System },
     // select:'firstName lastName email',
     options: {
       lean: true,
@@ -71,6 +123,9 @@ export const login = async (data) => {
   });
   if (!checkUser) {
     return notFoundException({ Message: "Couldn't Find This User" });
+  }
+  if (!checkUser.confirmedEmail) {
+    return conflictException({Message: "Verify your account before you can signin"})
   }
   checkUser.phone = await generateDecryption(checkUser.phone);
   const match = await compareHash({
@@ -100,7 +155,7 @@ export const signupWithGmail = async (idToken) => {
     if (checkUser.provider !== ProviderEnum.Google) {
       return conflictException({ Message: "Try to login with Google" });
     }
-    return await loginWithGmail(idToken) ;
+    return await loginWithGmail(idToken);
   }
 
   const user = await insertOne({
@@ -144,7 +199,7 @@ export const loginWithGmail = async (idToken) => {
     });
   }
 
-   return {
+  return {
     status: 200,
     credentials: await createLoginCredentials(checkUser),
   };
