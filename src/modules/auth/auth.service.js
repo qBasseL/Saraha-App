@@ -11,7 +11,6 @@ import {
 } from "../../common/utils/index.js";
 import { UserModel, findOne, insertOne } from "../../DB/index.js";
 import { generateHash, compareHash } from "../../common/utils/index.js";
-import jwt from "jsonwebtoken";
 import {
   TOKEN_ACCESS_SECRET_KEY,
   TOKEN_REFRESH_SECRET_KEY,
@@ -24,6 +23,12 @@ import {
   get,
   otpTemplateKey,
   set,
+  deletekey,
+  keys,
+  ttl,
+  otpMaxTrial,
+  otpBlockTemplateKey,
+  incr,
 } from "../../common/services/redis.service.js";
 
 const verifyGoogleAccount = async (idToken) => {
@@ -78,6 +83,8 @@ export const signup = async (data) => {
     html: emailTemplate({ title: "Confirm Email", code }),
   });
 
+  await set({ key: otpMaxTrial({ email }), value: 1, ttl: 1500 });
+
   return user;
 };
 
@@ -86,7 +93,7 @@ export const confirmSignup = async (data) => {
   const checkUser = await findOne({
     filter: {
       email,
-      confirmEmail: { $exists: false },
+      confirmedEmail: { $exists: false },
       provider: ProviderEnum.System,
     },
     model: UserModel,
@@ -108,6 +115,70 @@ export const confirmSignup = async (data) => {
   checkUser.confirmedEmail = new Date();
   await checkUser.save();
 
+  await deletekey({ key: await keys({ prefix: otpTemplateKey({ email }) }) });
+
+  return;
+};
+
+export const resendConfirmSignup = async (data) => {
+  const { email } = data;
+  const checkUser = await findOne({
+    filter: {
+      email,
+      confirmedEmail: { $exists: false },
+      provider: ProviderEnum.System,
+    },
+    model: UserModel,
+  });
+  if (!checkUser) {
+    return notFoundException({ Message: "User is not found to be verfied" });
+  }
+
+  const isBlocked = await ttl({ key: otpBlockTemplateKey({ email }) });
+
+  if (isBlocked > 0) {
+    return badRequestException({
+      Message:
+        "Sorry we can't request another otp rn please try again after 10 minutes",
+    });
+  }
+
+  const hashOtp = await ttl({ key: otpTemplateKey({ email }) });
+
+  if (hashOtp > 0) {
+    return badRequestException({
+      Message: "Sorry we can't request another otp rn please try again later",
+    });
+  }
+
+  const maxTrial = await get({ key: otpMaxTrial({ email }) });
+
+  if (maxTrial >= 3) {
+    await set({
+      key: otpBlockTemplateKey({ email }),
+      value: 1,
+      ttl: 600,
+    });
+    return badRequestException({
+      Message: "Can't generate more OTP's right not please try again later",
+    });
+  }
+
+  const code = await createNumberOtp();
+  await set({
+    key: otpTemplateKey({ email }),
+    value: await generateHash({ plaintext: `${code}` }),
+    ttl: 300,
+  });
+
+  await sendEmail({
+    to: email,
+    subject: "Confirm Email",
+    html: emailTemplate({ title: "Confirm Email", code }),
+  });
+
+  await incr({ key: otpMaxTrial({ email }) });
+
   return;
 };
 
@@ -125,7 +196,9 @@ export const login = async (data) => {
     return notFoundException({ Message: "Couldn't Find This User" });
   }
   if (!checkUser.confirmedEmail) {
-    return conflictException({Message: "Verify your account before you can signin"})
+    return conflictException({
+      Message: "Verify your account before you can signin",
+    });
   }
   checkUser.phone = await generateDecryption(checkUser.phone);
   const match = await compareHash({
@@ -165,7 +238,7 @@ export const signupWithGmail = async (idToken) => {
       lastName: payload.family_name || "empty",
       email: payload.email,
       profilePicture: payload.picture,
-      confirmEmail: new Date(),
+      confirmedEmail: new Date(),
       provider: ProviderEnum.Google,
     },
   });
