@@ -179,6 +179,69 @@ export const confirmSignup = async (data) => {
   return;
 };
 
+export const resendConfirmSignup = async (data) => {
+  const { email } = data;
+  const checkUser = await findOne({
+    filter: {
+      email,
+      confirmedEmail: { $exists: false },
+      provider: ProviderEnum.System,
+    },
+    model: UserModel,
+  });
+  if (!checkUser) {
+    return notFoundException({ Message: "User is not found to be verfied" });
+  }
+
+  const isBlocked = await ttl({ key: otpBlockTemplateKey({ email }) });
+
+  if (isBlocked > 0) {
+    return badRequestException({
+      Message:
+        "Sorry we can't request another otp rn please try again after 10 minutes",
+    });
+  }
+
+  const hashOtp = await ttl({ key: otpTemplateKey({ email }) });
+
+  if (hashOtp > 0) {
+    return badRequestException({
+      Message: "Sorry we can't request another otp rn please try again later",
+    });
+  }
+
+  const maxTrial = await get({ key: otpMaxTrial({ email }) });
+
+  if (maxTrial >= 3) {
+    await set({
+      key: otpBlockTemplateKey({ email }),
+      value: 1,
+      ttl: 600,
+    });
+    return badRequestException({
+      Message: "Can't generate more OTP's right not please try again later",
+    });
+  }
+
+  const code = await createNumberOtp();
+  await set({
+    key: otpTemplateKey({ email }),
+    value: await generateHash({ plaintext: `${code}` }),
+    ttl: 300,
+  });
+
+  emailEvent.emit("sendEmail", async () => {
+    await sendEmail({
+      to: email,
+      subject: "Confirm Email",
+      html: emailTemplate({ title: "Confirm Email", code }),
+    });
+
+    await incr({ key: otpMaxTrial({ email }) });
+  });
+  return;
+};
+
 export const login = async (data) => {
   const { email, password } = data;
   const checkUser = await findOne({
