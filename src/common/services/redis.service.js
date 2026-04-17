@@ -8,15 +8,15 @@ export const revokeTokenKey = ({ userId, jti }) => {
   return `${baseRevokeTokenKey({ userId })}::${jti}`;
 };
 
-export const otpTemplateKey = ({ email, subject = "ConfrimEmail" } = {}) => {
+export const otpTemplateKey = ({ email, subject = "ConfirmEmail" } = {}) => {
   return `OTP::User::${email}::${subject}`;
 };
 
-export const otpBlockTemplateKey = ({ email, subject = "ConfrimEmail" } = {}) => {
+export const otpBlockTemplateKey = ({ email, subject = "ConfirmEmail" } = {}) => {
   return `OTP::User::${email}::${subject}::Block`;
 };
 
-export const otpMaxTrial = ({ email, subject = "ConfrimEmail" } = {}) => {
+export const otpMaxTrial = ({ email, subject = "ConfirmEmail" } = {}) => {
   return `OTP::User::${email}::${subject}::MaxTrial`;
 };
 
@@ -101,6 +101,10 @@ export const keys = async ({ prefix } = {}) => {
 
 export const deletekey = async ({ key } = {}) => {
   try {
+    if (Array.isArray(key)) {
+      if (!key.length) return 0;
+      return await redisClient.del(...key);
+    }
     return await redisClient.del(key);
   } catch (error) {
     console.log(`Failed in redis delete operation ${error}`);
