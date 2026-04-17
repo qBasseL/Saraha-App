@@ -8,8 +8,16 @@ export const revokeTokenKey = ({ userId, jti }) => {
   return `${baseRevokeTokenKey({ userId })}::${jti}`;
 };
 
-export const otpTemplateKey = ({ email }) => {
-  return `OTP::User::${email}`;
+export const otpTemplateKey = ({ email, subject = "ConfrimEmail" } = {}) => {
+  return `OTP::User::${email}::${subject}`;
+};
+
+export const otpBlockTemplateKey = ({ email, subject = "ConfrimEmail" } = {}) => {
+  return `OTP::User::${email}::${subject}::Block`;
+};
+
+export const otpMaxTrial = ({ email, subject = "ConfrimEmail" } = {}) => {
+  return `OTP::User::${email}::${subject}::MaxTrial`;
 };
 
 export const set = async ({ key, value, ttl } = {}) => {
@@ -96,5 +104,13 @@ export const deletekey = async ({ key } = {}) => {
     return await redisClient.del(key);
   } catch (error) {
     console.log(`Failed in redis delete operation ${error}`);
+  }
+};
+
+export const incr = async ({ key }) => {
+  try {
+    await redisClient.incr(key);
+  } catch (error) {
+    console.log(`Failed in redis incr operation ${error}`);
   }
 };

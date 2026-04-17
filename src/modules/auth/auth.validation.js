@@ -25,3 +25,10 @@ export const confirmEmail = {
   }).required()
 };
 
+export const resendConfirmEmail = {
+  body: joi.object().keys({
+    email: generalValidationField.email.required(),
+  }).required()
+};
+
+

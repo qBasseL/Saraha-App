@@ -5,6 +5,7 @@ import {
   signupWithGmail,
   loginWithGmail,
   confirmSignup,
+  resendConfirmSignup
 } from "./auth.service.js";
 import { successResponse } from "../../common/utils/response/success.response.js";
 import { badRequestException } from "../../common/utils/index.js";
@@ -20,6 +21,11 @@ router.post("/signup", validation(validators.signup), async (req, res, next) => 
 
 router.patch("/confirm-email", validation(validators.confirmEmail), async (req, res, next) => {
   const result = await confirmSignup(req.body);
+  return successResponse({ res, status: 200, data: result });
+});
+
+router.patch("/resend-confirm-email", validation(validators.resendConfirmEmail), async (req, res, next) => {
+  const result = await resendConfirmSignup(req.body);
   return successResponse({ res, status: 200, data: result });
 });
 
