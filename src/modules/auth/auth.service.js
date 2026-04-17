@@ -142,6 +142,8 @@ export const signup = async (data) => {
     });
   });
 
+  await set({ key: otpMaxTrial({ email }), value: 1, ttl: 1500 });
+
   return user;
 };
 
@@ -173,37 +175,6 @@ export const confirmSignup = async (data) => {
 
   checkUser.confirmedEmail = new Date();
   await checkUser.save();
-
-  const keysToDelete = await keys({
-    prefix: otpTemplateKey({ email, subject: EmailEnum.ConfirmEmail }),
-  });
-
-  if (keysToDelete.length) {
-    await deletekey({ key: keysToDelete });
-  }
-
-  return;
-};
-
-export const resendConfirmSignup = async (data) => {
-  const { email } = data;
-  const checkUser = await findOne({
-    filter: {
-      email,
-      confirmedEmail: { $exists: false },
-      provider: ProviderEnum.System,
-    },
-    model: UserModel,
-  });
-  if (!checkUser) {
-    return notFoundException({ Message: "User is not found to be verfied" });
-  }
-
-  await resendOTP({
-    email,
-    subject: EmailEnum.ConfirmEmail,
-    title: "Verify Email",
-  });
 
   return;
 };

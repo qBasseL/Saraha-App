@@ -8,16 +8,8 @@ export const revokeTokenKey = ({ userId, jti }) => {
   return `${baseRevokeTokenKey({ userId })}::${jti}`;
 };
 
-export const otpTemplateKey = ({ email, subject = "ConfirmEmail" } = {}) => {
-  return `OTP::User::${email}::${subject}`;
-};
-
-export const otpBlockTemplateKey = ({ email, subject = "ConfirmEmail" } = {}) => {
-  return `OTP::User::${email}::${subject}::Block`;
-};
-
-export const otpMaxTrial = ({ email, subject = "ConfirmEmail" } = {}) => {
-  return `OTP::User::${email}::${subject}::MaxTrial`;
+export const otpTemplateKey = ({ email }) => {
+  return `OTP::User::${email}`;
 };
 
 export const set = async ({ key, value, ttl } = {}) => {
