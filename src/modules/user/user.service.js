@@ -46,6 +46,7 @@ export const profileCoverImage = async (user, files) => {
   await user.save();
   return user;
 };
+
 export const rotateToken = async (user, { jti, iat, sub }) => {
   if ((iat + ACCESS_TOKEN_EXPIRES_IN) * 1000 > Date.now() + 30000) {
     return conflictException({

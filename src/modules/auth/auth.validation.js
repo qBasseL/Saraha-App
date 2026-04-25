@@ -32,3 +32,12 @@ export const resendConfirmEmail = {
 };
 
 
+export const resetPassword = {
+  body: joi.object().keys({
+    email: generalValidationField.email.required(),
+    password : generalValidationField.password.required(),
+    confirmPassword : generalValidationField.confirmPassword("password"),
+    otp: generalValidationField.otp.required()
+  }).required()
+}
+

@@ -5,7 +5,10 @@ import {
   signupWithGmail,
   loginWithGmail,
   confirmSignup,
-  resendConfirmSignup
+  resendConfirmSignup,
+  forgotPassword,
+  verifyForgotPassword,
+  resetPassword
 } from "./auth.service.js";
 import { successResponse } from "../../common/utils/response/success.response.js";
 import { badRequestException } from "../../common/utils/index.js";
@@ -26,6 +29,21 @@ router.patch("/confirm-email", validation(validators.confirmEmail), async (req, 
 
 router.patch("/resend-confirm-email", validation(validators.resendConfirmEmail), async (req, res, next) => {
   const result = await resendConfirmSignup(req.body);
+  return successResponse({ res, status: 200, data: result });
+});
+
+router.post("/forgot-password", validation(validators.resendConfirmEmail), async (req, res, next) => {
+  const result = await forgotPassword(req.body);
+  return successResponse({ res, status: 200, data: result });
+});
+
+router.post("/confirm-forgot-password", validation(validators.confirmEmail), async (req, res, next) => {
+  const result = await verifyForgotPassword(req.body);
+  return successResponse({ res, status: 200, data: result });
+});
+
+router.patch("/reset-forgot-password", validation(validators.resetPassword), async (req, res, next) => {
+  const result = await resetPassword(req.body);
   return successResponse({ res, status: 200, data: result });
 });
 

@@ -10,7 +10,7 @@ import {
   notFoundException,
   sendEmail,
 } from "../../common/utils/index.js";
-import { UserModel, findOne, insertOne } from "../../DB/index.js";
+import { UserModel, findOne, insertOne, updateOne } from "../../DB/index.js";
 import { generateHash, compareHash } from "../../common/utils/index.js";
 import {
   TOKEN_ACCESS_SECRET_KEY,
@@ -30,6 +30,7 @@ import {
   otpMaxTrial,
   otpBlockTemplateKey,
   incr,
+  baseRevokeTokenKey,
 } from "../../common/services/redis.service.js";
 import { EmailEnum } from "../../common/enums/email.enum.js";
 
@@ -302,4 +303,75 @@ export const loginWithGmail = async (idToken) => {
     status: 200,
     credentials: await createLoginCredentials(checkUser),
   };
+};
+
+export const forgotPassword = async (data) => {
+  const { email } = data;
+  const user = await findOne({
+    model: UserModel,
+    filter: {
+      email,
+      confirmedEmail: { $exists: true },
+      provider: ProviderEnum.System,
+    },
+  });
+
+  if (!user) {
+    return notFoundException({ Message: "Couldn't find that email!" });
+  }
+
+  await resendOTP({
+    email,
+    subject: EmailEnum.ForgotPassword,
+    title: "Reset Password",
+  });
+};
+
+export const verifyForgotPassword = async (data) => {
+  const { email, otp } = data;
+
+  const hashOtp = await get({
+    key: otpTemplateKey({ email, subject: EmailEnum.ForgotPassword }),
+  });
+
+  if (!hashOtp) {
+    return notFoundException({ Message: "Expired OTP" });
+  }
+
+  if (!(await compareHash({ plaintext: otp, cipherText: hashOtp }))) {
+    return conflictException({ Message: "Invalid OTP" });
+  }
+};
+
+export const resetPassword = async (data) => {
+  const { email, otp, password } = data;
+
+  await verifyForgotPassword({email, otp});
+
+  const user = await updateOne({
+    model: UserModel,
+    filter: {
+      email,
+      confirmedEmail: { $exists: true },
+      provider: ProviderEnum.System,
+    },
+    update: {
+      password: await generateHash({ plaintext: password }),
+      changeCredentialTime: new Date(),
+    },
+  });
+
+  if (!user.matchedCount) {
+    return notFoundException({ Message: "Couldn't find the email" });
+  }
+
+  const tokenKeys = await keys({
+    prefix: baseRevokeTokenKey({ userId: user._id }),
+  });
+  const otpKeys = await keys({
+    prefix: otpTemplateKey({ email, subject: EmailEnum.ForgotPassword }),
+  });
+
+  await deletekey([...tokenKeys, ...otpKeys]);
+  return;
 };
