@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { localFileUpload, successResponse } from "../../common/utils/index.js";
-import { getUser, logout, profileCoverImage, profileImage, rotateToken, shareProfile } from "./user.service.js";
+import { getUser, logout, profileCoverImage, profileImage, rotateToken, shareProfile, updatePassword } from "./user.service.js";
 import {
   authenticate,
   authorization,
@@ -25,6 +25,16 @@ router.patch(
   validation(validators.fileValidation),
   async (req, res, next) => {
     const result = await profileImage(req.user, req.file)
+    return successResponse({ res, status: 200, data: { result } });
+  },
+);
+
+router.patch(
+  "/update-password",
+  authenticate(),
+  validation(validators.updatePassword),
+  async (req, res, next) => {
+    const result = await updatePassword(req.user, req.body)
     return successResponse({ res, status: 200, data: { result } });
   },
 );

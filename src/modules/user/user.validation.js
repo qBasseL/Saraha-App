@@ -13,6 +13,14 @@ export const sharedProfile = {
     .required(),
 };
 
+export const updatePassword = {
+  body: joi.object().keys({
+    oldPassword: generalValidationField.password.required(),
+    password: generalValidationField.password.not(joi.ref('oldPassword')).required(),
+    confirmPassword: generalValidationField.confirmPassword('password'),
+  }).required()
+}
+
 export const fileValidation = {
   file: joi
     .object()

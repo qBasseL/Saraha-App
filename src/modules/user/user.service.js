@@ -11,11 +11,13 @@ import {
   baseRevokeTokenKey,
 } from "../../common/services/redis.service.js";
 import {
+  compareHash,
   conflictException,
   createLoginCredentials,
   decodeToken,
   errorException,
   generateDecryption,
+  generateHash,
   notFoundException,
 } from "../../common/utils/index.js";
 import {
@@ -105,3 +107,19 @@ export const logout = async ({ flag }, user, { jti, iat, sub }) => {
 
   return status;
 };
+
+
+export const updatePassword = async(user, data) => {
+  const {oldPassword, password} = data
+
+  if(! await compareHash({plaintext:oldPassword, cipherText:user.password})) {
+    return conflictException({Message: "invalid password"})
+  }
+
+  user.password = await generateHash({plaintext: password})
+  user.changeCredentialTime = new Date()
+  await user.save()
+  await deletekey({key: await keys({prefix: baseRevokeTokenKey({userId: user._id})})})
+
+  return await createLoginCredentials(user)
+}
