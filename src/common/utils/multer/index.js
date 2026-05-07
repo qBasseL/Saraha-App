@@ -1,2 +1,2 @@
 export * from './local.multer.js'
-export {fileFieledValidation} from './validation.multer.js'
+export {fileFieldValidation} from './validation.multer.js'

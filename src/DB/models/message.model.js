@@ -7,13 +7,13 @@ const messageSchema = new mongoose.Schema(
       minLength: 2,
       maxLength: 10000,
       required: function () {
-        return !this.attachement?.length;
+        return !this.attachment?.length;
       },
     },
-    attachement: {
+    attachment: {
       type: [String],
     },
-    recieverId: {
+    receiverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -29,4 +29,4 @@ const messageSchema = new mongoose.Schema(
   },
 );
 
-export const MessageModel = mongoose.models.Message || mongoose.model("Message", messageSchema)
+export const Message = mongoose.model("Message", messageSchema);

@@ -1,6 +1,6 @@
 import joi from "joi";
 import {
-  fileFieledValidation,
+  fileFieldValidation,
   generalValidationField,
 } from "../../common/utils/index.js";
 
@@ -30,7 +30,7 @@ export const fileValidation = {
       encoding: joi.string().required(),
       mimetype: joi
         .string()
-        .valid(...Object.values(fileFieledValidation.Image))
+        .valid(...Object.values(fileFieldValidation.Image))
         .required(),
       finalPath: joi.string().required(),
       destination: joi.string().required(),
@@ -53,7 +53,7 @@ export const filesValidation = {
           encoding: joi.string().required(),
           mimetype: joi
             .string()
-            .valid(...Object.values(fileFieledValidation.Image))
+            .valid(...Object.values(fileFieldValidation.Image))
             .required(),
           finalPath: joi.string().required(),
           destination: joi.string().required(),

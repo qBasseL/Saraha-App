@@ -1,150 +1,195 @@
 # Saraha App
 
-## Overview
-Saraha App is a professional Express.js REST API for user authentication, profile management, and secure file uploads. It supports email/password registration, Google sign-in, token rotation, user profile sharing, and upload of profile pictures and cover images.
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-5.2+-blue.svg)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7+-green.svg)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
-## Key Features
-- Email/password signup and login
-- Google authentication for signup and login
-- Access token and refresh token support
-- User profile retrieval and token refresh endpoint
-- Profile image upload (`profile picture`)
-- Profile cover image upload (`profile cover picture`)
-- Public user profile sharing by user ID
-- Centralized error handling and 404 route fallback
+A robust, scalable REST API built with Express.js for secure user authentication, profile management, messaging, and file uploads. Designed for modern web applications with comprehensive security features and clean architecture.
 
-## Technology Stack
-- Node.js / Express 5
-- MongoDB with Mongoose
-- JWT authentication
-- Google OAuth2 verification
-- File upload with Multer
-- Input validation with Joi
-- Security hardening with Helmet
-- CORS configuration
-- Environment configurations with dotenv
+## 🚀 Overview
 
-## Folder Structure
-- `src/` - application source files
-  - `app.bootstrap.js` - Express app initialization and routing
-  - `main.js` - application entry point
-  - `common/` - shared utilities, enums, response helpers, validation, file uploads
-  - `DB/` - database connection, repository helpers, Mongoose models
-  - `middleware/` - authentication and validation middleware
-  - `modules/` - route controllers, services, and validation
-    - `auth/` - authentication endpoints and logic
-    - `user/` - user profile endpoints and logic
-- `config/` - environment configuration loader
-- `uploads/` - stored uploaded files
+Saraha App provides a complete backend solution for applications requiring user authentication, profile management, secure messaging, and media uploads. It supports multiple authentication methods, JWT-based security, and efficient file handling with validation.
 
-## Installation
-1. Clone the repository.
-2. Open the project root at `Code/`.
-3. Install dependencies:
+## ✨ Key Features
 
-```bash
-npm install
+- **Multi-Authentication**: Email/password and Google OAuth2 signup/login
+- **JWT Security**: Access and refresh token rotation with configurable expiration
+- **User Management**: Profile retrieval, updates, and public sharing
+- **Messaging System**: Send and receive messages with file attachments
+- **File Uploads**: Secure image uploads for profiles and messages
+- **Input Validation**: Comprehensive Joi-based request validation
+- **Security Hardening**: Helmet, CORS, and encryption utilities
+- **Error Handling**: Centralized error management with detailed responses
+- **Database Integration**: MongoDB with Mongoose ODM
+- **Environment Config**: Flexible configuration for development/production
+
+## 🛠 Technology Stack
+
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js 5.2+
+- **Database**: MongoDB with Mongoose
+- **Authentication**: JWT (jsonwebtoken)
+- **OAuth**: Google Auth Library
+- **File Upload**: Multer
+- **Validation**: Joi
+- **Security**: Helmet, CORS
+- **Environment**: dotenv
+- **Caching**: Redis (optional)
+
+## 📁 Project Structure
+
+```
+src/
+├── app.bootstrap.js          # Express app initialization
+├── main.js                   # Application entry point
+├── common/
+│   ├── enums/                # Application constants
+│   ├── services/             # Shared services (Redis)
+│   ├── utils/
+│   │   ├── response/         # HTTP response helpers
+│   │   ├── validation.js     # General validation utilities
+│   │   ├── multer/           # File upload configuration
+│   │   ├── email/            # Email utilities
+│   │   ├── otp.js            # OTP generation
+│   │   └── security/         # Encryption & hashing
+├── DB/
+│   ├── db.connection.js      # MongoDB connection
+│   ├── redis.connection.js   # Redis connection
+│   ├── database.repository.js # DB utilities
+│   └── models/               # Mongoose schemas
+├── middleware/
+│   ├── authentication.middleware.js
+│   └── validation.middleware.js
+├── modules/
+│   ├── auth/                 # Authentication module
+│   ├── user/                 # User profile module
+│   └── message/              # Messaging module
+config/                       # Environment configuration
+uploads/                      # Static file storage
 ```
 
-## Environment Configuration
-Create environment files under `Code/config/`:
-- `.env.development`
-- `.env.production`
+## 📦 Installation
 
-Required variables:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd saraha-app/Code
+   ```
 
-```env
-NODE_ENV=development
-PORT=3000
-DB_URI=mongodb://localhost:27017/saraha
-SALT_ROUND=10
-IV_LENGTH=16
-ENC_SECRET_KEY=your-32-byte-base64-or-buffer-key
-TOKEN_ACCESS_SECRET_KEY=your-access-token-secret
-TOKEN_REFRESH_SECRET_KEY=your-refresh-token-secret
-SYSTEM_TOKEN_ACCESS_SECRET_KEY=your-system-access-secret
-SYSTEM_TOKEN_REFRESH_SECRET_KEY=your-system-refresh-secret
-ACCESS_TOKEN_EXPIRES_IN=900
-REFRESH_TOKEN_EXPIRES_IN=604800
-WEB_CLIENT_ID=your-google-web-client-id
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-> Note: `ENC_SECRET_KEY` should be a secure key used for encryption operations.
+3. **Environment Setup**
+   Create environment files in `config/`:
+   - `.env.development`
+   - `.env.production`
 
-## Running the App
-Start in development mode:
+   **Required Environment Variables:**
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   DB_URI=mongodb://localhost:27017/saraha
+   REDIS_URL=redis://localhost:6379
+   SALT_ROUND=10
+   IV_LENGTH=16
+   ENC_SECRET_KEY=your-32-byte-base64-or-buffer-key
+   TOKEN_ACCESS_SECRET_KEY=your-access-token-secret
+   TOKEN_REFRESH_SECRET_KEY=your-refresh-token-secret
+   SYSTEM_TOKEN_ACCESS_SECRET_KEY=your-system-access-secret
+   SYSTEM_TOKEN_REFRESH_SECRET_KEY=your-system-refresh-secret
+   ACCESS_TOKEN_EXPIRES_IN=900
+   REFRESH_TOKEN_EXPIRES_IN=604800
+   WEB_CLIENT_ID=your-google-web-client-id
+   ```
 
+   > **Security Note**: Use strong, unique keys for encryption and JWT secrets. Never commit sensitive data to version control.
+
+## 🚀 Running the Application
+
+### Development Mode
 ```bash
 npm run start:dev
 ```
+- Uses `nodemon` for auto-restart on file changes
+- Loads `.env.development` configuration
 
-Start in production mode:
-
+### Production Mode
 ```bash
 npm run start:prod
 ```
+- Optimized for production deployment
+- Loads `.env.production` configuration
 
-The application listens on the port defined by `PORT` and exposes uploads at `/uploads`.
+The server will start on the configured `PORT` (default: 3000) and serve static files from `/uploads`.
 
-## API Endpoints
+## 📡 API Endpoints
 
-### Authentication
-- `POST /auth/signup`
-  - Body: `{ username, email, password, confirmPassword, phone }`
-  - Registers a new user using email and password.
+### Authentication Module (`/auth`)
+- `POST /auth/signup` - User registration with email/password
+- `POST /auth/login` - User login with email/password
+- `POST /auth/signup/gmail` - Google OAuth registration
+- `POST /auth/login/gmail` - Google OAuth login
 
-- `POST /auth/login`
-  - Body: `{ email, password }`
-  - Logs in an existing user and returns authentication credentials.
+### User Profile Module (`/user`)
+- `GET /user/` - Get authenticated user profile *(Requires Auth)*
+- `POST /user/token-rotate` - Refresh access tokens *(Requires Refresh Token)*
+- `PATCH /user/profile-image` - Upload profile picture *(Requires Auth)*
+- `PATCH /user/profile-cover-image` - Upload cover images *(Requires Auth)*
+- `GET /user/:userId/shared-profile` - Get public user profile
 
-- `POST /auth/signup/gmail`
-  - Body: `{ idToken }`
-  - Registers a user with Google and returns credentials.
+### Messaging Module (`/message`)
+- `POST /message/:receiverId` - Send message with attachments *(Requires Auth)*
+- `GET /message/` - Get received messages *(Requires Auth)*
 
-- `POST /auth/login/gmail`
-  - Body: `{ idToken }`
-  - Logs in a Google-authenticated user and returns credentials.
+## 🔒 Security Features
 
-### User Profile
-- `GET /user/`
-  - Requires Authorization header: `Bearer <accessToken>`
-  - Returns the authenticated user's profile.
+- **JWT Authentication**: Bearer token validation for protected routes
+- **Role-Based Access**: Configurable user roles and permissions
+- **File Validation**: Strict MIME type and size limits for uploads
+- **Input Sanitization**: Joi schema validation for all requests
+- **Encryption**: AES encryption for sensitive data
+- **CORS Protection**: Configured cross-origin policies
+- **Helmet Security**: HTTP security headers
+- **Rate Limiting**: Built-in request throttling capabilities
 
-- `POST /user/token-rotate`
-  - Requires Authorization header: `Bearer <refreshToken>`
-  - Generates a new set of login credentials using refresh token validation.
+## 📤 File Uploads
 
-- `PATCH /user/profile-image`
-  - Requires Authorization header: `Bearer <accessToken>`
-  - Uploads a single profile image file as `attachment`
-  - Uses the `profile picture` upload folder.
+- **Supported Formats**: JPEG, PNG, JPG images
+- **Storage**: Local filesystem under `uploads/` directory
+- **Serving**: Static files accessible via `/uploads` endpoint
+- **Validation**: File type and size restrictions enforced
+- **Folders**:
+  - `profile picture` - Single image uploads
+  - `profile cover picture` - Multiple image uploads
+  - `Message` - Message attachments
 
-- `PATCH /user/profile-cover-image`
-  - Requires Authorization header: `Bearer <accessToken>`
-  - Uploads up to 3 cover images as `attachments`
-  - Uses the `profile cover picture` upload folder.
+## 🧪 Testing
 
-- `GET /user/:userId/shared-profile`
-  - Public endpoint to retrieve another user's shared profile by user ID.
+```bash
+npm test
+```
 
-## File Uploads
-- Uploaded images are saved under the `uploads/` directory.
-- Static files are served from `/uploads`.
-- The upload destination is configured for:
-  - `profile picture`
-  - `profile cover picture`
+## 🤝 Contributing
 
-## Security & Validation
-- Request validation is implemented with Joi.
-- Authentication uses JWT validation from request headers.
-- Role-based access control is supported for authenticated user routes.
-- Global error handling is enabled.
-- `helmet` and `cors` are enabled for HTTP security and cross-origin requests.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Notes
-- CORS is configured to allow requests from `http://localhost:4200`.
-- If a route is not matched, the app returns a `404 Invalid Routing` JSON response.
-- Ensure MongoDB is running and reachable through `DB_URI` before starting the server.
+## 📄 License
 
-## Contact
-For support or improvements, update the project documentation or contact the maintainer responsible for this repository.
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Support
+
+For questions, issues, or contributions:
+- Create an issue in the repository
+- Contact the development team
+
+---
+
+**Built with ❤️ using Express.js and MongoDB**

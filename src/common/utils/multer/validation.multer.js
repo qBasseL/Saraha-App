@@ -1,4 +1,4 @@
-export const fileFieledValidation = {
+export const fileFieldValidation = {
     Image : ["image/jpeg", "image/png", "image/jpg"],
     PDF : ["application/pdf"],
     Excel : [

@@ -9,7 +9,7 @@ import { TokenTypeEnums } from "../../common/enums/security.enum.js";
 import { RoleEnum } from "../../common/enums/user.enum.js";
 import { validation } from "../../middleware/validation.middleware.js";
 import * as validators from "./user.validation.js";
-import { fileFieledValidation } from "../../common/utils/index.js";
+import { fileFieldValidation } from "../../common/utils/index.js";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.post('/logout', authenticate(), async (req, res, next) => {
 router.patch(
   "/profile-image",
   authenticate(),
-  localFileUpload("profile picture" , fileFieledValidation.Image).single("attachment"),
+  localFileUpload("profile picture" , fileFieldValidation.Image).single("attachment"),
   validation(validators.fileValidation),
   async (req, res, next) => {
     const result = await profileImage(req.user, req.file)
@@ -42,7 +42,7 @@ router.patch(
 router.patch(
   "/profile-cover-image",
   authenticate(),
-  localFileUpload("profile cover picture" , fileFieledValidation.Image).array("attachments", 3),
+  localFileUpload("profile cover picture" , fileFieldValidation.Image).array("attachments", 3),
   validation(validators.filesValidation),
   async (req, res, next) => {
     const result = await profileCoverImage(req.user, req.files)
